@@ -5,11 +5,11 @@ TA to consume logs from Akamai and Akamai cloud products like Kona. This handles
 
 ## Requirements 
 
-### HTTPS/HTTP  method
+#### HTTPS/HTTP  method
 * Apache 2.2 
 * DumpIO module configured in Apache (see installation steps for details)
 
-### FTP method
+#### FTP method
 * vsftp
 
 ## Installtion Steps
