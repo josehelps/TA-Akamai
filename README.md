@@ -13,7 +13,7 @@ TA to consume logs from Akamai and Akamai cloud products like Kona. This handles
 * vsftp
 
 ## Installtion Steps
-### HTTP method
+#### HTTP method
 We have tested with CentOS 6.8 and Apache 2.2 cannot assure you will get the same results with other Distro/Apache versions
 
 1. git clone this package
