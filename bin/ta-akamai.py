@@ -88,13 +88,12 @@ def get_config():
 
     return config
 
-def get_akamai_data(REX,LOG_PATH):
+def get_akamai_data(REX,LOG_PATH,p):
     # pull JSON from error_log
     payload_rex = re.compile(REX)
     fh = open(LOG_PATH)
 
-    #just need to init this variable for future use
-    p = 0
+  
 
     #loop that reads throug the error log
     while True:
@@ -121,7 +120,7 @@ def get_akamai_data(REX,LOG_PATH):
                         content['cookie'] = urllib.unquote(content['cookie']).decode('utf8')
                 
                 
-                return json_payload
+                return json_payload,p
 
 # Routine to index data
 def run(): 
@@ -130,9 +129,13 @@ def run():
     log_path = config['log_path']
     logging.debug('TA-Akamai has been configured with with path {0}'.format(log_path))
 
+    p = 0
+
     while True:
-        results = get_akamai_data(REX,log_path)
+        
+        results,p = get_akamai_data(REX,log_path,p)
         print json.dumps(results,sort_keys=True)
+        sleep(2)
         #print json.dumps(results,sort_keys=True,indent=4, separators=(',', ': '))
 
 # Script must implement these args: scheme, validate-arguments
