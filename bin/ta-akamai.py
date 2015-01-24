@@ -144,7 +144,6 @@ def run():
                         content['accEnc'] = urllib.unquote(content['accEnc']).decode('utf8')
                         content['referer'] = urllib.unquote(content['referer']).decode('utf8')
                         content['cookie'] = urllib.unquote(content['cookie']).decode('utf8')
-        
                 logging.debug(json_payload)
                 #print json.dumps(json_payload)
                 f.write((json.dumps(json_payload,sort_keys=True)))
