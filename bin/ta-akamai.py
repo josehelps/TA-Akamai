@@ -4,6 +4,16 @@ import json
 import sys
 import logging
 import xml.dom.minidom, xml.sax.saxutils
+import time
+import os
+from splunk.appserver.mrsparkle.lib.util import make_splunkhome_path
+
+
+#makes a local path to store logs to be ingested in inouts.conf
+BASE_DIR = make_splunkhome_path(["etc","apps","TA-Akamai"])
+
+#adjusted for windows path
+LOCAL_LOG_PATH = os.path.join(BASE_DIR,'log','akamai.log')
 
 #set up logging suitable for splunkd comsumption
 logging.root
@@ -88,20 +98,35 @@ def get_config():
 
     return config
 
-def get_akamai_data(REX,LOG_PATH):
-    # pull JSON from error_log
+# Routine to index data
+def run(): 
+    config = get_config()
+    logging.info(config)
+    log_path = config['log_path']
+    logging.warn('TA-Akamai has been configured with with path {0}'.format(log_path))
+
+    #Set the filename and open the file
+    filename = log_path
+    file = open(filename,'r')
+
+    #opens a file handle to write results into 
+    bufsize = 0
+    f = open(LOCAL_LOG_PATH, 'w',bufsize)
+
+    #Find the size of the file and move to the end
+    st_results = os.stat(filename)
+    st_size = st_results[6]
+    file.seek(st_size)
+
+    #regex to extract payload 
     payload_rex = re.compile(REX)
-    fh = open(LOG_PATH)
-
-    #just need to init this variable for future use
-    p = 0
-
-    #loop that reads throug the error log
     while True:
-        fh.seek(p)
-        latest_data = fh.read()
-        p = fh.tell()
-        if latest_data:
+        where = file.tell()
+        line = file.readline()
+        if not line:
+            file.seek(where)
+        else:
+            latest_data = line
             #match the payload
             payload = payload_rex.search(latest_data)
             if payload:
@@ -119,21 +144,11 @@ def get_akamai_data(REX,LOG_PATH):
                         content['accEnc'] = urllib.unquote(content['accEnc']).decode('utf8')
                         content['referer'] = urllib.unquote(content['referer']).decode('utf8')
                         content['cookie'] = urllib.unquote(content['cookie']).decode('utf8')
-                
-                
-                return json_payload
-
-# Routine to index data
-def run(): 
-    config = get_config()
-    logging.info(config)
-    log_path = config['log_path']
-    logging.debug('TA-Akamai has been configured with with path {0}'.format(log_path))
-
-    while True:
-        results = get_akamai_data(REX,log_path)
-        print json.dumps(results,sort_keys=True)
-        #print json.dumps(results,sort_keys=True,indent=4, separators=(',', ': '))
+        
+                logging.debug(json_payload)
+                #print json.dumps(json_payload)
+                f.write((json.dumps(json_payload,sort_keys=True)))
+                f.write('\n')
 
 # Script must implement these args: scheme, validate-arguments
 if __name__ == '__main__':
