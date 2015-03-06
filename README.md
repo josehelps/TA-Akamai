@@ -1,7 +1,7 @@
 TA-Akamai
 =========
 
-TA to consume logs from Akamai and Akamai cloud products like Kona. This handles both https and ftp method of delivery
+TA to consume logs from Akamai and Akamai cloud products like Kona. Currently adds the HTTPS delivery method. Has some support (but no docs) for FTP delivery.
 
 ## Requirements 
 
