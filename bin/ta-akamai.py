@@ -15,17 +15,29 @@ BASE_DIR = make_splunkhome_path(["etc","apps","TA-Akamai"])
 #adjusted for windows path
 LOCAL_LOG_PATH = os.path.join(BASE_DIR,'log','akamai.log')
 
-#set up logging suitable for splunkd comsumption
-logging.root
-logging.root.setLevel(logging.DEBUG)
-formatter = logging.Formatter('%(levelname)s %(message)s')
-handler = logging.StreamHandler()
-handler.setFormatter(formatter)
-logging.root.addHandler(handler)
+#set up logger for the app
+def setup_logger():
+    """
+    sets up logger for shutdown command
+    """
+    logger = logging.getLogger('ta-akamai')
+    # Prevent the log messgaes from being duplicated in the python.log
+    #    AuthorizationFailed
+    logger.propagate = False
+    logger.setLevel(logging.DEBUG)
+
+    file_handler = logging.handlers.RotatingFileHandler(
+                    make_splunkhome_path(['var', 'log', 'splunk', 'ta-akamai.log']),
+                                        maxBytes=25000000, backupCount=5)
+    formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
+    file_handler.setFormatter(formatter)
+    logger.addHandler(file_handler)
+    return logger
+logger = setup_logger()
+
 
 #Unless Akamai Changes the way they log this should not be modified
-REX = '\(data\-HEAP\)\:\s(?P<json>\{.+\}\})'
-#LOG_PATH = '/var/log/httpd/error_log'
+REX = '\(data\-TRANSIENT\)\:\s(?P<json>\{.+\}\})'
 
 #Defines a Scheme 
 SCHEME = """<scheme>
@@ -67,23 +79,23 @@ def get_config():
         root = doc.documentElement
         conf_node = root.getElementsByTagName("configuration")[0]
         if conf_node:
-            logging.debug("XML: found configuration")
+            logger.debug("XML: found configuration")
             stanza = conf_node.getElementsByTagName("stanza")[0]
             if stanza:
                 stanza_name = stanza.getAttribute("name")
                 if stanza_name:
-                    logging.debug("XML: found stanza " + stanza_name)
+                    logger.debug("XML: found stanza " + stanza_name)
                     config["name"] = stanza_name
 
                     params = stanza.getElementsByTagName("param")
                     for param in params:
                         param_name = param.getAttribute("name")
-                        logging.debug("XML: found param '%s'" % param_name)
+                        logger.debug("XML: found param '%s'" % param_name)
                         if param_name and param.firstChild and \
                            param.firstChild.nodeType == param.firstChild.TEXT_NODE:
                             data = param.firstChild.data
                             config[param_name] = data
-                            logging.debug("XML: '%s' -> '%s'" % (param_name, data))
+                            logger.debug("XML: '%s' -> '%s'" % (param_name, data))
 
         checkpnt_node = root.getElementsByTagName("checkpoint_dir")[0]
         if checkpnt_node and checkpnt_node.firstChild and \
@@ -101,9 +113,9 @@ def get_config():
 # Routine to index data
 def run(): 
     config = get_config()
-    logging.info(config)
+    logger.info(config)
     log_path = config['log_path']
-    logging.warn('TA-Akamai has been configured with with path {0}'.format(log_path))
+    logger.warn('TA-Akamai has been configured with with path {0}'.format(log_path))
 
     #Set the filename and open the file
     filename = log_path
@@ -127,12 +139,19 @@ def run():
             file.seek(where)
         else:
             latest_data = line
-            #match the payload
+            
+	    #match the payload
             payload = payload_rex.search(latest_data)
             if payload:
                 #turn payload into json
                 json_payload = payload.group('json')
-                json_payload = json.loads(json_payload)
+		logger.error(json_payload)
+               
+		#makes sure we are dealing with a proper json object 
+		try:
+			json_payload = json.loads(json_payload)
+		except:
+			continue
              
                 #URL decode the appropiate fields 
                 for ids,content in json_payload.iteritems():
@@ -144,8 +163,7 @@ def run():
                         content['accEnc'] = urllib.unquote(content['accEnc']).decode('utf8')
                         content['referer'] = urllib.unquote(content['referer']).decode('utf8')
                         content['cookie'] = urllib.unquote(content['cookie']).decode('utf8')
-                logging.debug(json_payload)
-                #print json.dumps(json_payload)
+                #logger.debug(json_payload)
                 f.write((json.dumps(json_payload,sort_keys=True)))
                 f.write('\n')
 
