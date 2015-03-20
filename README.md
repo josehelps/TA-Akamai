@@ -31,7 +31,19 @@ We have tested with CentOS 6.8 and Apache 2.2 cannot assure you will get the sam
 #### Testing
 If you need to test to make sure that you are indeed logging posts and they are landing on your error logs try running:
 
-`curl -X POST https://127.0.0.1:4443/receiver.html -d '{"type":"cloud_monitor","format":"default","version":"1.0"}'`
+`curl -X POST https://127.0.0.1:4443/receiver.html -d '
+{
+  "type": "cloud_monitor",
+  "format": "default",
+  "version": "1.0",
+  "message": {
+    "content-type": "text",
+    "refer": "http://google.com",
+    "User-Agent": "Googlebot/2.1 (+http://www.google.com/bot.html)"
+  }
+}
+'
+`
 
 If you are logging apache error logs under **/var/log/httpd/error_log** you should see: 
 
