@@ -145,12 +145,13 @@ def run():
             if payload:
                 #turn payload into json
                 json_payload = payload.group('json')
-		logger.error(json_payload)
+		#logger.error(json_payload)
                
 		#makes sure we are dealing with a proper json object 
 		try:
 			json_payload = json.loads(json_payload)
 		except:
+                        logger.error('payload was not proper JSON: \n {0}'.format(json_payload))
 			continue
              
                 #URL decode the appropiate fields 
