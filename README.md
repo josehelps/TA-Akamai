@@ -35,7 +35,7 @@ If you need to test to make sure that you are indeed logging posts and they are 
 
 If you are logging apache error logs under **/var/log/httpd/error_log** you should see: 
 
-`[Thu Mar 05 14:37:00 2015] [debug] mod_dumpio.c(74): mod_dumpio:  dumpio_out (data-TRANSIENT): {"type":"cloud_monitor","format":"default","version":"1.0"}\r\n`
+`[Fri Mar 06 01:04:32 2015] [debug] mod_dumpio.c(74): mod_dumpio:  dumpio_in (data-TRANSIENT): { "type": "cloud_monitor", "format": "default", "version": "1.0", "message": { "reqPath": "/", "reqQuery": "action=test", "UA": "Googlebot/2.1 (+http://www.google.com/bot.html)"} , "reqHdr": { "accEnc": "gzip, deflate", "referer": "http://www.google.com", "cookie": "abc123" }}`
 
 And under **$SPLUNK_HOME/etc/apps/TA-Akamai/log/akamai.log** you should see the full JSON object parsed as well. 
  
