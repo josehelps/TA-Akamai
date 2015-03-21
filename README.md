@@ -49,16 +49,17 @@ The app works in 3 phases and hence issues will show up in any of these three:
 3. Splunk via `inputs.conf` ingest `$SPLUNK_HOME/etc/apps/TA-Akamai/log/akamai.log`, because it is a JSON object under props.conf we do `KV_MODE = json` and perform CIM compliance on `props.conf`
 
 ### FTP method installation
-* Install vsftp service, create ftp user
-Link to an example on how this can be done (steps in your environment may be different):
-https://ostechnix.wordpress.com/2013/12/15/setup-ftp-server-step-by-step-in-centos-6-x-rhel-6-x-scientific-linux-6-x/
-* FTP push is from akamai cloud service, most likely you will need to enable port forwarding to a specific directory where logs will be dropped to.
-to set this up on akamai’s end, you will need to provide Akamai with:
-ftp username
-ftp password
-ftp hostname / ip address
-* Once logs are in, you will need to set up a monitor stanza to index the akamai logs:
-inputs.conf
-[monitor://$SPLUNK_HOME/etc/apps/TA-Akamai/log/akamai.log]
-sourcetype=akamai
-disabled = false
+* setup vsftp server, there is a great guide here:
+<https://ostechnix.wordpress.com/2013/12/15/setup-ftp-server-step-by-step-in-centos-6-x-rhel-6-x-scientific-linux-6-x/>
+
+* FTP push is from akamai cloud service, most likely you will need to enable port forwarding to a specific directory where logs will be dropped into. To configure this on akamai’s end, you will need to provide Akamai with:
+  * ftp username
+  * ftp password
+  * ftp hostname / ip address
+* Once logs are in your FTP directory, you will need to set up a monitor stanza to index the akamai logs, we ship with an example: `grep FTP TA-Akamai/default/inputs.conf -A3`
+
+		#FTP input example
+			#[monitor://$SPLUNK_HOME/etc/apps/TA-Akamai/log/ftp/akamai.log]
+		#sourcetype=akamai
+		#disabled = false	
+just uncomment it and you should be set
